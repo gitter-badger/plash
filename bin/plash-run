@@ -24,7 +24,7 @@ DEFAULT_MOUNTS = ['default']
 
 # SECURITY: noexec and so on in / mounts?
 PSEUDO_FSTAB = '''
-proc ./proc proc rw,nosuid,nodev,noexec,relatime
+proc ./proc procfs rw,nosuid,nodev,noexec,relatime
 devtmpfs ./dev devtmpfs rw,relatime,size=498860k,nr_inodes=124715,mode=755
 sysfs ./sys sysfs rw,nosuid,nodev,noexec,relatime
 tmpfs ./dev/shm tmpfs rw,nosuid,nodev
@@ -48,12 +48,12 @@ mqueue ./dev/mqueue mqueue rw,relatime
 configfs ./sys/kernel/config configfs rw,relatime
 fusectl ./sys/fs/fuse/connections fusectl rw,relatime
 binfmt_misc ./proc/sys/fs/binfmt_misc binfmt_misc rw,relatime
-/home ./home none defaults,bind
-/tmp ./tmp none defaults,bind
+/home ./home nullfs defaults
+/tmp ./tmp nullfs defaults
 /etc/passwd ./etc/passwd none defaults,bind
 /etc/group ./etc/group none defaults,bind
 /etc/hosts ./etc/hosts none defaults,bind
-/etc/resolv.conf ./etc/resolv.conf none defaults,bind
+/etc/resolv.conf ./etc/resolv.conf nullfs defaults
 '''
 
 MOUNT_GROUPS = {
