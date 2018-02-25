@@ -38,11 +38,11 @@ set -eu
 MOUNTPOINT=/var/run/plash-distributable-{progname}
 test -d /var/run # just assert it exists before calling mkdir -p
 mkdir -p $MOUNTPOINT
-mountpoint -q $MOUNTPOINT || mount -t squashfs /opt/plash-distributable/$prog/rootfs.squashfs $MOUNTPOINT
+mountpoint -q $MOUNTPOINT || mount -t squashfs /opt/plash-distributable/{progname}/rootfs.squashfs $MOUNTPOINT
 mountpoint -q $MOUNTPOINT/mnt || mount --bind / $MOUNTPOINT/mnt
 chroot $MOUNTPOINT mount -a
-prog=$(basename $0)
-exec chroot $MOUNTPOINT env "$prog" $@
+run=$(basename $0)
+exec chroot $MOUNTPOINT env "$run" $@
 '''.format(
     progname=shlex.quote(progname),
 ))
