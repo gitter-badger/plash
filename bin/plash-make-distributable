@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+#
+# usage: plash-make-distributable
+
+import sys
+import os
+from os.path import join
+import tempfile
+import tarfile
+import shlex
+from subprocess import check_call
+from plashlib.utils import handle_help_flag, handle_build_args, nodepath_or_die
+from plashlib import ux
+
+handle_help_flag()
+handle_build_args()
+ux.assert_is_root()
+
+container = sys.argv[1]
+progname = sys.argv[2]
+executables = sys.argv[3].split(',')
+out = sys.argv[4]
+nodepath_or_die(container)
+
+tmp = tempfile.mkdtemp()
+optdir = join(tmp, 'opt', 'plash-distributable', progname)
+bindir = join(tmp, 'usr', 'local', 'bin')
+os.makedirs(optdir)
+os.makedirs(bindir)
+after_install_optdir=join('/opt/plash-distributable', progname)
+squashfile = join(optdir, 'rootfs.squashfs')
+
+check_call(['plash-export-squashfs', container, squashfile])
+
+with open(join(optdir, 'chroot'), 'w') as script:
+    script.write('''#!/bin/sh
+set -eu
+MOUNTPOINT=/var/run/plash-distributable-{progname}
+test -d /var/run # just assert it exists before calling mkdir -p
+mkdir -p $MOUNTPOINT
+mountpoint -q $MOUNTPOINT || mount -t squashfs /opt/plash-distributable/$prog/rootfs.squashfs $MOUNTPOINT
+mountpoint -q $MOUNTPOINT/mnt || mount --bind / $MOUNTPOINT/mnt
+chroot $MOUNTPOINT mount -a
+prog=$(basename $0)
+exec chroot $MOUNTPOINT env "$prog" $@
+'''.format(
+    progname=shlex.quote(progname),
+))
+os.chmod(script.name, 0o755)
+for executable in executables:
+    os.symlink(join(after_install_optdir, 'chroot'), join(bindir, executable))
+
+with tarfile.open(out, "w") as tar:
+    tar.add(tmp, arcname='/')
