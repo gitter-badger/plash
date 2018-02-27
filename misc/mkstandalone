@@ -1,0 +1,22 @@
+set -eu
+
+tmp=$(mktemp -d)
+outbase=$(mktemp -d)
+out=$outbase/out.tar
+opt=$tmp/opt/plash-0.01
+bin=$tmp/usr/local/bin
+mkdir -p $opt
+mkdir -p $bin
+
+plash-with-mount -A python3 py3-pip --pip3 plash -- sudo cp -r . $opt
+echo 'echo hello' > $bin/hello
+chmod +x $bin/hello
+
+cd $tmp
+tar --sort=name -cf $out .
+
+echo $tmp
+echo $out
+
+# install with
+# tar -xf /tmp/out.tar -C /  
